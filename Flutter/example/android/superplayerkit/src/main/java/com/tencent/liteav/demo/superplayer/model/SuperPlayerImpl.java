@@ -265,7 +265,8 @@ public class SuperPlayerImpl implements SuperPlayer, ITXVodPlayListener, ITXLive
      * @param context
      */
     private void initLivePlayer(Context context) {
-        mLivePlayer = new TXLivePlayer(context);
+//        mLivePlayer = new TXLivePlayer(context);
+        mLivePlayer = new TXLivePlayerImpl(context);
         SuperPlayerGlobalConfig config = SuperPlayerGlobalConfig.getInstance();
         mLivePlayConfig = new TXLivePlayConfig();
         mLivePlayer.setConfig(mLivePlayConfig);
