@@ -38,6 +38,8 @@ public class TXLivePlayerImpl extends TXLivePlayer {
         super(context);
         // 创建快直播播放对象
         quickLivePlayer = new V2TXLivePlayerImpl(context);
+
+        Log.e("TAG", "TXLivePlayerImpl => ");
     }
 
     @Override
