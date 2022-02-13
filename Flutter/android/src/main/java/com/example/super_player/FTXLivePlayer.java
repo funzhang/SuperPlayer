@@ -53,6 +53,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     public FTXLivePlayer(FlutterPlugin.FlutterPluginBinding flutterPluginBinding, Activity activity) {
         super();
+
+        Log.e("TAG", "FTXLivePlayer");
+
         mFlutterPluginBinding = flutterPluginBinding;
         mActivity = activity;
 
@@ -277,6 +280,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     void pause() {
         if (mLivePlayer != null) {
+            Log.e("TAG", "FTXLivePlayer v2 pause");
             mLivePlayer.pauseAudio();
             mLivePlayer.pauseVideo();
         }
