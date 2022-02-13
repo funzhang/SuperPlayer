@@ -4,7 +4,7 @@ import com.tencent.liteav.demo.superplayer.SuperPlayerDef;
 import com.tencent.liteav.demo.superplayer.model.entity.PlayImageSpriteInfo;
 import com.tencent.liteav.demo.superplayer.model.entity.PlayKeyFrameDescInfo;
 import com.tencent.liteav.demo.superplayer.model.entity.VideoQuality;
-import com.tencent.rtmp.TXLivePlayer;
+import com.tencent.live2.V2TXLivePlayer; // import com.tencent.rtmp.TXLivePlayer;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public abstract class SuperPlayerObserver {
 
     public void onPlayerTypeChange(SuperPlayerDef.PlayerType playType) {}
 
-    public void onPlayTimeShiftLive(TXLivePlayer player, String url) {}
+    public void onPlayTimeShiftLive(V2TXLivePlayer player, String url) {}
 
     public void onVideoQualityListChange(List<VideoQuality> videoQualities, VideoQuality defaultVideoQuality) {}
 

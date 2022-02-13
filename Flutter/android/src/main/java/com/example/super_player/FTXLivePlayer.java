@@ -5,14 +5,17 @@ import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Surface;
+import android.view.TextureView;
 
 import androidx.annotation.NonNull;
 
+import com.tencent.live2.V2TXLiveDef;
 import com.tencent.rtmp.ITXLivePlayListener;
 import com.tencent.rtmp.TXLiveBase;
 import com.tencent.rtmp.TXLiveConstants;
 import com.tencent.rtmp.TXLivePlayConfig;
-import com.tencent.rtmp.TXLivePlayer;
+import com.tencent.live2.V2TXLivePlayer; // import com.tencent.rtmp.TXLivePlayer;
+import com.tencent.live2.impl.V2TXLivePlayerImpl;
 import com.tencent.rtmp.TXVodPlayer;
 
 import java.util.HashMap;
@@ -26,7 +29,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.view.TextureRegistry;
 
-public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.MethodCallHandler, ITXLivePlayListener {
+public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.MethodCallHandler {
 
     private static final String TAG = "FTXLivePlayer";
     private FlutterPlugin.FlutterPluginBinding mFlutterPluginBinding;
@@ -37,11 +40,12 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     private SurfaceTexture mSurfaceTexture;
     private Surface mSurface;
+    private TextureView mTextureView;
 
     final private FTXPlayerEventSink mEventSink = new FTXPlayerEventSink();
     final private FTXPlayerEventSink mNetStatusSink = new FTXPlayerEventSink();
 
-    private TXLivePlayer mLivePlayer;
+    private V2TXLivePlayer mLivePlayer;
     private static final int Uninitialized = -101;
 
     private TextureRegistry.SurfaceTextureEntry mSurfaceTextureEntry;
@@ -54,7 +58,9 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
         mSurfaceTextureEntry =  mFlutterPluginBinding.getTextureRegistry().createSurfaceTexture();
         mSurfaceTexture = mSurfaceTextureEntry.surfaceTexture();
-        mSurface = new Surface(mSurfaceTexture);
+//        mSurface = new Surface(mSurfaceTexture);
+        mTextureView = new TextureView(mActivity);
+        mTextureView.setSurfaceTexture(mSurfaceTexture);
 
         mMethodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "cloud.tencent.com/txliveplayer/" + super.getPlayerId());
         mMethodChannel.setMethodCallHandler(this);
@@ -89,7 +95,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
     @Override
     public void destory() {
         if (mLivePlayer != null) {
-            mLivePlayer.stopPlay(true);
+            mLivePlayer.stopPlay();
             mLivePlayer = null;
         }
 
@@ -113,15 +119,15 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
         mNetChannel.setStreamHandler(null);
     }
 
-    @Override
-    public void onPlayEvent(int i, Bundle bundle) {
-        mEventSink.success(getParams(i, bundle));
-    }
-
-    @Override
-    public void onNetStatus(Bundle bundle) {
-        mNetStatusSink.success(getParams(0, bundle));
-    }
+//    @Override
+//    public void onPlayEvent(int i, Bundle bundle) {
+//        mEventSink.success(getParams(i, bundle));
+//    }
+//
+//    @Override
+//    public void onNetStatus(Bundle bundle) {
+//        mNetStatusSink.success(getParams(0, bundle));
+//    }
 
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
@@ -195,8 +201,8 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     protected long init(boolean onlyAudio) {
         if (mLivePlayer == null) {
-            mLivePlayer = new TXLivePlayer(mActivity);
-            mLivePlayer.setPlayListener(this);
+            mLivePlayer = new V2TXLivePlayerImpl(mActivity);
+//            mLivePlayer.setPlayListener(this);
         }
         Log.d("AndroidLog", "textureId :" + mSurfaceTextureEntry.id());
         return mSurfaceTextureEntry == null ? -1 : mSurfaceTextureEntry.id();
@@ -206,90 +212,131 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
     int startPlay(String url, int type) {
         Log.d(TAG, "startPlay:");
         if (mLivePlayer != null) {
-            mLivePlayer.setSurface(mSurface);
-            mLivePlayer.enableHardwareDecode(true);
-            mLivePlayer.setPlayListener(this);
+            mLivePlayer.setRenderView(mTextureView); // TODO 
+//            mLivePlayer.enableHardwareDecode(true);
+//            mLivePlayer.setPlayListener(this);
             TXLivePlayConfig config = new TXLivePlayConfig();
             config.setEnableMessage(true);
 
-            mLivePlayer.setVideoRenderListener(new TXLivePlayer.ITXLivePlayVideoRenderListener() {
+
+            mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
                 @Override
-                public void onRenderVideoFrame(TXLivePlayer.TXLiteAVTexture texture) {
-                    int width = texture.width;
-                    int height = texture.height;
-                    if(width != mSurfaceWidth || height != mSurfaceHeight){
-                        Log.d(TAG, "onRenderVideoFrame: width="+texture.width+",height="+texture.height);
-                        mLivePlayer.setSurfaceSize(width,height);
-                        mSurfaceTexture.setDefaultBufferSize(width,height);
-                        mSurfaceWidth = width;
-                        mSurfaceHeight = height;
-                    }
+                public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
+
                 }
-            },null);
-            return mLivePlayer.startPlay(url, type);
+
+                @Override
+                public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
+
+                }
+
+                @Override
+                public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+                    return false;
+                }
+
+                @Override
+                public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+
+                }
+            });
+
+//            mLivePlayer.setVideoRenderListener(new TXLivePlayer.ITXLivePlayVideoRenderListener() {
+//                @Override
+//                public void onRenderVideoFrame(TXLivePlayer.TXLiteAVTexture texture) {
+//                    int width = texture.width;
+//                    int height = texture.height;
+//                    if(width != mSurfaceWidth || height != mSurfaceHeight){
+//                        Log.d(TAG, "onRenderVideoFrame: width="+texture.width+",height="+texture.height);
+//                        mLivePlayer.setSurfaceSize(width,height);
+//                        mSurfaceTexture.setDefaultBufferSize(width,height);
+//                        mSurfaceWidth = width;
+//                        mSurfaceHeight = height;
+//                    }
+//                }
+//            },null);
+
+            return mLivePlayer.startPlay(url);
         }
         return Uninitialized;
     }
 
     int stopPlay(boolean isNeedClearLastImg) {
         if (mLivePlayer != null) {
-            return mLivePlayer.stopPlay(isNeedClearLastImg);
+            return mLivePlayer.stopPlay();
         }
         return Uninitialized;
     }
 
     boolean isPlaying() {
         if (mLivePlayer != null) {
-            return mLivePlayer.isPlaying();
+            return mLivePlayer.isPlaying()>0;
         }
         return false;
     }
 
     void pause() {
         if (mLivePlayer != null) {
-            mLivePlayer.pause();
+            mLivePlayer.pauseAudio();
+            mLivePlayer.pauseVideo();
         }
     }
 
     void resume() {
         if (mLivePlayer != null) {
-            mLivePlayer.resume();
+            mLivePlayer.resumeAudio();
+            mLivePlayer.resumeVideo();
         }
     }
 
     void setMute(boolean mute) {
         if (mLivePlayer != null) {
-            mLivePlayer.setMute(mute);
+            if (mute) {
+                mLivePlayer.pauseAudio();
+            } else {
+                mLivePlayer.resumeAudio();
+            }
+//            mLivePlayer.setMute(mute);
         }
     }
 
     void setVolume(int volume) {
         if (mLivePlayer != null) {
-            mLivePlayer.setVolume(volume);
+            mLivePlayer.setPlayoutVolume(volume);
         }
     }
 
     void setIsAutoPlay(boolean isAutoPlay) {
         if (mLivePlayer != null) {
-            mLivePlayer.setAutoPlay(isAutoPlay);
+//            mLivePlayer.setAutoPlay(isAutoPlay);
         }
     }
 
     void seek(float progress) {
         if (mLivePlayer != null) {
-            mLivePlayer.seek((int) progress);
+//            mLivePlayer.seek((int) progress);
         }
     }
 
     void setRate(float rate) {
         if (mLivePlayer != null) {
-            mLivePlayer.setRate(rate);
+//            mLivePlayer.setRate(rate);
         }
     }
 
     void setRenderRotation(int rotation) {
         if (mLivePlayer != null) {
-            mLivePlayer.setRenderRotation(rotation);
+            V2TXLiveDef.V2TXLiveRotation rotat = V2TXLiveDef.V2TXLiveRotation.V2TXLiveRotation0;
+            if (rotation == 0) {
+                rotat = V2TXLiveDef.V2TXLiveRotation.V2TXLiveRotation0;
+            } else if(rotation == 90) {
+                rotat = V2TXLiveDef.V2TXLiveRotation.V2TXLiveRotation90;
+            } else if(rotation == 180) {
+                rotat = V2TXLiveDef.V2TXLiveRotation.V2TXLiveRotation180;
+            } else if (rotation == 270) {
+                rotat = V2TXLiveDef.V2TXLiveRotation.V2TXLiveRotation270;
+            }
+            mLivePlayer.setRenderRotation(rotat);
         }
     }
 
@@ -298,27 +345,31 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
             TXLivePlayConfig config = new TXLivePlayConfig();
             if (type == 0) {
                 //自动模式
-                config.setAutoAdjustCacheTime(true);
-                config.setMinAutoAdjustCacheTime(1);
-                config.setMaxAutoAdjustCacheTime(3);
+//                config.setAutoAdjustCacheTime(true);
+//                config.setMinAutoAdjustCacheTime(1);
+//                config.setMaxAutoAdjustCacheTime(3);
+                mLivePlayer.setCacheParams(1,3);
             }else if(type == 1){
                 //极速模式
-                config.setAutoAdjustCacheTime(true);
-                config.setMinAutoAdjustCacheTime(1);
-                config.setMaxAutoAdjustCacheTime(1);
+//                config.setAutoAdjustCacheTime(true);
+//                config.setMinAutoAdjustCacheTime(1);
+//                config.setMaxAutoAdjustCacheTime(1);
+                mLivePlayer.setCacheParams(1,1);
             }else{
                 //流畅模式
-                config.setAutoAdjustCacheTime(false);
-                config.setCacheTime(5);
+//                config.setAutoAdjustCacheTime(false);
+//                config.setCacheTime(5);
+                mLivePlayer.setCacheParams(5,5);
             }
 
-            mLivePlayer.setConfig(config);
+//            mLivePlayer.setConfig(config);
         }
     }
 
     void switchStream(String url) {
         if (mLivePlayer != null) {
-            mLivePlayer.switchStream(url);
+            mLivePlayer.startPlay(url);
+//            mLivePlayer.switchStream(url);
         }
     }
 
@@ -328,7 +379,7 @@ public class FTXLivePlayer extends FTXBasePlayer implements MethodChannel.Method
 
     private int prepareLiveSeek(String domain, int bizId) {
         if (mLivePlayer != null) {
-            return mLivePlayer.prepareLiveSeek(domain, bizId);
+//            return mLivePlayer.prepareLiveSeek(domain, bizId);
         }
         
         return Uninitialized;

@@ -8,7 +8,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.tencent.rtmp.TXLivePlayer;
+import com.tencent.live2.V2TXLivePlayer; //import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXLog;
 
 import java.lang.ref.WeakReference;
@@ -26,7 +26,7 @@ public class NetWatcher {
     private final static int MAX_LOADING_COUNT = 3;     // 弹出切换清晰度提示框的loading总次数
 
     private WeakReference<Context>      mContext;
-    private WeakReference<TXLivePlayer> mLivePlayer;    // 直播播放器
+    private WeakReference<V2TXLivePlayer> mLivePlayer;    // 直播播放器
 
     private String mPlayURL        = "";    // 播放的url
 
@@ -47,7 +47,7 @@ public class NetWatcher {
      * @param playUrl 播放的url
      * @param player  播放器
      */
-    public void start(String playUrl, TXLivePlayer player) {
+    public void start(String playUrl, V2TXLivePlayer player) {
         mWatching = true;
         mLivePlayer = new WeakReference<>(player);
         mPlayURL = playUrl;
@@ -115,10 +115,11 @@ public class NetWatcher {
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        TXLivePlayer player = mLivePlayer!=null ? mLivePlayer.get() : null;
+                        V2TXLivePlayer player = mLivePlayer!=null ? mLivePlayer.get() : null;
                         String videoUrl = mPlayURL.replace(".flv","_900.flv");
                         if (player != null && !TextUtils.isEmpty(videoUrl)) {
-                            int result = player.switchStream(videoUrl);
+//                            int result = player.switchStream(videoUrl);
+                            int result = player.startPlay(videoUrl);
                             if (result < 0) {
                                 Toast.makeText(context,"切换高清清晰度失败，请稍候重试", Toast.LENGTH_SHORT).show();
                             } else {

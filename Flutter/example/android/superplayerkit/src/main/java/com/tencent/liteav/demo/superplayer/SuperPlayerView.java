@@ -41,6 +41,7 @@ import com.tencent.liteav.demo.superplayer.ui.player.FullScreenPlayer;
 import com.tencent.liteav.demo.superplayer.ui.player.Player;
 import com.tencent.liteav.demo.superplayer.ui.player.WindowPlayer;
 import com.tencent.liteav.demo.superplayer.ui.view.DanmuView;
+import com.tencent.live2.V2TXLivePlayer; //import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.TXLivePlayer;
 import com.tencent.rtmp.ui.TXCloudVideoView;
 
@@ -786,7 +787,7 @@ public class SuperPlayerView extends RelativeLayout {
         }
 
         @Override
-        public void onPlayTimeShiftLive(TXLivePlayer player, String url) {
+        public void onPlayTimeShiftLive(V2TXLivePlayer player, String url) {
             if (mWatcher == null) {
                 mWatcher = new NetWatcher(mContext);
             }
